@@ -1,0 +1,47 @@
+services:
+  # 1. TU BASE DE DATOS
+  mariadb:
+    image: "mariadb:11.4"
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    environment:
+      - MARIADB_DATABASE=${DB_NAME}
+      - MARIADB_USER=${DB_USER}
+      - MARIADB_PASSWORD=${DB_PASSWORD}
+      - MARIADB_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
+    ports:
+      - "${DB_LOCAL_PORT}:3306"
+    volumes:
+      - ./data_mariadb:/var/lib/mysql
+    networks:
+      - fenix_network
+
+  # 2. TU APLICACIÓN SPRING BOOT
+  app-spring:
+    build: . # Le dice a Docker: "Busca el Dockerfile en esta misma carpeta y constrúyelo"
+    volumes:
+      - ./uploads:/app/uploads
+    ports:
+      - "${APP_PORT}:8080"
+    environment:
+      # Así es como Spring Boot sabrá dónde encontrar a MariaDB
+      - "SPRING_DATASOURCE_URL=jdbc:mariadb://mariadb:3306/${DB_NAME}?useUnicode=true&characterEncoding=utf8mb4"
+      - SPRING_DATASOURCE_USERNAME=${DB_USER}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
+
+      - API_SECURITY_TOKEN_EXPIRATION=${JWT_EXPIRATION:-86400000}
+      - API_SECURITY_TOKEN_SECRET=${JWT_SECRET:-defaultSecretKeyForDevelopmentOnlyPleaseChangeInProduction}
+
+      - SPRING_MAIL_HOST=${HOST_MAIL}
+      - SPRING_MAIL_PORT=${MAIL_PORT}
+      - SPRING_MAIL_USERNAME=${MAIL_USERNAME}
+      - SPRING_MAIL_PASSWORD=${MAIL_PASSWORD}
+    depends_on:
+      - mariadb
+    networks:
+      - fenix_network
+
+# 3. LA RED QUE LOS UNE
+networks:
+  fenix_network:
+    name: fenix_network
+    driver: bridge

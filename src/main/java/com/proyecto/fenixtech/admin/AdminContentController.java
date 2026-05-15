@@ -50,12 +50,12 @@ public class AdminContentController {
     }
 
     @PostMapping("/subcategories")
-    public ResponseEntity<Subcategories> createSubcategory(@RequestBody Subcategories subcategory) {
+    public ResponseEntity<Subcategories> createSubcategory(@RequestBody com.proyecto.fenixtech.dto.SubcategoriesRequestDTO subcategory) {
         return ResponseEntity.status(HttpStatus.CREATED).body(adminContentService.saveSubcategory(subcategory));
     }
 
     @PutMapping("/subcategories/{id}")
-    public ResponseEntity<Subcategories> updateSubcategory(@PathVariable Integer id, @RequestBody Subcategories subcategory) {
+    public ResponseEntity<Subcategories> updateSubcategory(@PathVariable Integer id, @RequestBody com.proyecto.fenixtech.dto.SubcategoriesRequestDTO subcategory) {
         return ResponseEntity.ok(adminContentService.updateSubcategory(id, subcategory));
     }
 

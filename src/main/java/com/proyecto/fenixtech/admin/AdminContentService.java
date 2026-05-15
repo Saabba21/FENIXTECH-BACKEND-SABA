@@ -44,13 +44,30 @@ public class AdminContentService {
     
     public List<Subcategories> findAllSubcategories() { return subcategoriesRepository.findAll(); }
 
-    public Subcategories saveSubcategory(Subcategories subcategory) { return subcategoriesRepository.save(subcategory); }
+    public Subcategories saveSubcategory(com.proyecto.fenixtech.dto.SubcategoriesRequestDTO dto) { 
+        Subcategories subcategory = new Subcategories();
+        subcategory.setName(dto.getName());
+        subcategory.setDescription(dto.getDescription());
+        if (dto.getCategoryId() != null) {
+            Categories cat = categoriesRepository.findById(dto.getCategoryId())
+                .orElseThrow(() -> new ResourceNotFoundException("Categoría no encontrada con ID: " + dto.getCategoryId()));
+            subcategory.setCategory(cat);
+        }
+        return subcategoriesRepository.save(subcategory); 
+    }
 
-    public Subcategories updateSubcategory(Integer id, Subcategories details) {
+    public Subcategories updateSubcategory(Integer id, com.proyecto.fenixtech.dto.SubcategoriesRequestDTO details) {
         Subcategories sub = subcategoriesRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Subcategoría no encontrada con ID: " + id));
         sub.setName(details.getName());
-        sub.setCategory(details.getCategory());
+        if (details.getDescription() != null) {
+            sub.setDescription(details.getDescription());
+        }
+        if (details.getCategoryId() != null) {
+            Categories cat = categoriesRepository.findById(details.getCategoryId())
+                .orElseThrow(() -> new ResourceNotFoundException("Categoría no encontrada con ID: " + details.getCategoryId()));
+            sub.setCategory(cat);
+        }
         return subcategoriesRepository.save(sub);
     }
 
@@ -74,7 +91,8 @@ public class AdminContentService {
         Proposals p = proposalsRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Propuesta no encontrada con ID: " + id));
         try {
-            p.setStatus(ProposalStatus.valueOf(status.toUpperCase()));
+            String cleanStatus = status.replaceAll("\"", "").trim().toUpperCase();
+            p.setStatus(ProposalStatus.valueOf(cleanStatus));
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Estado de propuesta no válido: " + status);
         }
